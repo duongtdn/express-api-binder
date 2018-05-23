@@ -3,22 +3,22 @@
 const express = require('express')
 const bodyParser = require('body-parser');
 
-const app = express();
+const router = express.Router();
 
-app
+router
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: false }))
 
-app.__dbHandler = {};
+router.__dbHandler = {};
 
-app.useDatabase = function(db) {
+router.useDatabase = function(db) {
   for (let n in db) {
-    app.__dbHandler[n] = db[n]
+    router.__dbHandler[n] = db[n]
   }
   return this;
 }
 
-app.parseApi = function(api) {
+router.parseApi = function(api) {
   const patt = /^\w+/i;
   const method = `${api.match(patt)}`;          // convert to string
   const uri = `${api.replace(patt,"")}`;
@@ -26,12 +26,12 @@ app.parseApi = function(api) {
   return { method, uri, includePath }
 }
 
-app.createFunction = function(method, uri, funcs, options) {
+router.createFunction = function(method, uri, funcs, options) {
   const middleWares = funcs.map( (func) => {
-    return func(app.__dbHandler, options)
+    return func(router.__dbHandler, options)
   })
-  app[method](uri, ...middleWares)
-  return app;
+  router[method](uri, ...middleWares)
+  return router;
 }
 
-module.exports = app;
+module.exports = router;
